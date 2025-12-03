@@ -1,0 +1,15 @@
+{
+  "short_name": "MoodMedia",
+  "name": "MoodMedia - News Sentiment Dashboard",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#2563EB",
+  "background_color": "#ffffff"
+}
