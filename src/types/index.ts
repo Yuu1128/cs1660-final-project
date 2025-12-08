@@ -36,6 +36,13 @@ export interface DashboardData {
     start: string;
     end: string;
   };
+  stats?: {
+    totalArticles: number;
+    positiveCount: number;
+    negativeCount: number;
+    neutralCount: number;
+  };
+  lastUpdated?: string;
 }
 
 export interface SentimentInsights {

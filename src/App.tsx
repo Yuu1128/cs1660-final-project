@@ -1,45 +1,109 @@
 import React, { useState, useEffect, useCallback, CSSProperties } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Login } from './pages/Login';
+import { Authenticator } from '@aws-amplify/ui-react';
+import { signOut, getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
+import { get } from 'aws-amplify/api';
+import '@aws-amplify/ui-react/styles.css';
 import { Dashboard } from './pages/Dashboard';
 import { ArticlePage } from './pages/ArticlePage';
-import { generateMockDashboardData } from './services/mockData';
-import { DashboardData } from './types';
-import { format, subDays } from 'date-fns';
+import { DashboardData, NewsArticle } from './types';
 
 const styles: { [key: string]: CSSProperties } = {
   app: {
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif',
-    WebkitFontSmoothing: 'antialiased',
-    MozOsxFontSmoothing: 'grayscale',
   },
+  loginContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh',
+    backgroundColor: '#f5f5f5',
+  }
 };
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<any>(null);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // 1. CHECK AUTH STATUS ON LOAD
+  useEffect(() => {
+    checkUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function checkUser() {
+    try {
+      const currentUser = await getCurrentUser();
+      const attributes = await fetchUserAttributes();
+      setUser({ ...currentUser, ...attributes });
+      setIsAuthenticated(true);
+      fetchData();
+    } catch (error) {
+      console.log('User is not signed in');
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // 2. FETCH DATA FROM AWS LAMBDA
+  const fetchData = async () => {
+    try {
+      console.log('Fetching news from API...');
+      const restOperation = get({
+        apiName: 'NewsDashboardAPI',
+        path: '/news'
+      });
+      const response = await restOperation.response;
+      const json = await response.body.json() as any;
+
+      console.log('API Response:', json);
+
+      const articles: NewsArticle[] = Array.isArray(json) ? json : [];
+
+      const realData: DashboardData = {
+        articles,
+        sentimentResults: articles.map(a => ({
+          articleId: a.articleId,
+          sentimentScore: (a as any).sentimentScore || 0,
+          sentiment: (a as any).sentimentScore > 0.05 ? 'positive' as const :
+                     (a as any).sentimentScore < -0.05 ? 'negative' as const :
+                     'neutral' as const
+        })),
+        totalCount: articles.length,
+        dateRange: {
+          start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          end: new Date().toISOString()
+        },
+        stats: {
+           totalArticles: articles.length,
+           positiveCount: articles.filter((a: any) => a.sentimentScore > 0.05).length,
+           negativeCount: articles.filter((a: any) => a.sentimentScore < -0.05).length,
+           neutralCount: articles.filter((a: any) => a.sentimentScore >= -0.05 && a.sentimentScore <= 0.05).length,
+        },
+        lastUpdated: new Date().toISOString()
+      };
+
+      setDashboardData(realData);
+    } catch (e) {
+      console.error('Failed to fetch news:', e);
+    }
+  };
 
   const updateDashboardData = useCallback((data: DashboardData) => {
     setDashboardData(data);
   }, []);
 
-  const handleLogin = useCallback((userData: any) => {
-    setUser(userData);
-    setIsAuthenticated(true);
-  }, []);
-
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback(async () => {
+    await signOut();
     setUser(null);
     setIsAuthenticated(false);
+    setDashboardData(null);
   }, []);
 
-  useEffect(() => {
-    const startDate = format(subDays(new Date(), 7), 'yyyy-MM-dd');
-    const endDate = format(new Date(), 'yyyy-MM-dd');
-    const data = generateMockDashboardData(startDate, endDate);
-    setDashboardData(data);
-  }, []);
+  if (loading) return <div style={{padding: 20}}>Loading...</div>;
 
   return (
     <Router>
@@ -50,14 +114,28 @@ function App() {
             element={
               isAuthenticated ? 
                 <Navigate to="/dashboard" replace /> : 
-                <Login onLogin={handleLogin} />
+                (
+                  <div style={styles.loginContainer}>
+                    <Authenticator>
+                      {({ user }) => {
+                        if (user && !isAuthenticated) checkUser();
+                        return <div>Loading Dashboard...</div>;
+                      }}
+                    </Authenticator>
+                  </div>
+                )
             } 
           />
           <Route 
             path="/dashboard" 
             element={
               isAuthenticated ? 
-                <Dashboard dashboardData={dashboardData} setDashboardData={updateDashboardData} user={user} onLogout={handleLogout} /> : 
+                <Dashboard 
+                  dashboardData={dashboardData} 
+                  setDashboardData={updateDashboardData} 
+                  user={user} 
+                  onLogout={handleLogout} 
+                /> : 
                 <Navigate to="/login" replace />
             } 
           />
@@ -68,7 +146,7 @@ function App() {
                 <ArticlePage articles={dashboardData?.articles || []} /> : 
                 <Navigate to="/login" replace />
             } 
-          />
+          />    
           <Route 
             path="/" 
             element={
