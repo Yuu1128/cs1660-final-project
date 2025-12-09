@@ -7,6 +7,8 @@ import '@aws-amplify/ui-react/styles.css';
 import { Dashboard } from './pages/Dashboard';
 import { ArticlePage } from './pages/ArticlePage';
 import { DashboardData, NewsArticle } from './types';
+import { UserPreferences } from './components/UserPreferences';
+import { useUserPreferences } from './hooks/useUserPreferences';
 
 const styles: { [key: string]: CSSProperties } = {
   app: {
@@ -26,6 +28,7 @@ function App() {
   const [user, setUser] = useState<any>(null);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { preferences, setPreferences, loading: preferencesLoading } = useUserPreferences(user?.userId || user?.username);
 
   // 1. CHECK AUTH STATUS ON LOAD
   useEffect(() => {
@@ -37,9 +40,9 @@ function App() {
     try {
       const currentUser = await getCurrentUser();
       const attributes = await fetchUserAttributes();
-      setUser({ ...currentUser, ...attributes });
+      const fullUser = { ...currentUser, ...attributes };
+      setUser(fullUser);
       setIsAuthenticated(true);
-      fetchData();
     } catch (error) {
       console.log('User is not signed in');
       setIsAuthenticated(false);
@@ -48,13 +51,24 @@ function App() {
     }
   }
 
+  useEffect(() => {
+    if (isAuthenticated && !preferencesLoading && preferences) {
+      fetchData(preferences.categories);
+    }
+  }, [isAuthenticated, preferencesLoading, preferences]);
+
   // 2. FETCH DATA FROM AWS LAMBDA
-  const fetchData = async () => {
+  const fetchData = async (categories?: string[]) => {
     try {
-      console.log('Fetching news from API...');
+      console.log('Fetching news from API...', { categories });
       const restOperation = get({
         apiName: 'NewsDashboardAPI',
-        path: '/news'
+        path: '/news',
+        options: categories && categories.length > 0 ? {
+          queryParams: {
+            categories: categories.join(',')
+          }
+        } : undefined
       });
       const response = await restOperation.response;
       const json = await response.body.json() as any;
@@ -96,6 +110,15 @@ function App() {
     setDashboardData(data);
   }, []);
 
+  const handlePreferencesComplete = (newPreferences: { categories: string[] }) => {
+    setPreferences(newPreferences);
+    fetchData(newPreferences.categories);
+  };
+
+  const handlePreferencesSkip = () => {
+    fetchData();
+  };
+
   const handleLogout = useCallback(async () => {
     await signOut();
     setUser(null);
@@ -103,11 +126,18 @@ function App() {
     setDashboardData(null);
   }, []);
 
-  if (loading) return <div style={{padding: 20}}>Loading...</div>;
+  if (loading || (isAuthenticated && preferencesLoading)) return <div style={{padding: 20}}>Loading...</div>;
 
   return (
     <Router>
       <div style={styles.app}>
+        {isAuthenticated && !preferencesLoading && !preferences && user && (
+          <UserPreferences
+            userId={user.userId || user.username}
+            onComplete={handlePreferencesComplete}
+            onSkip={handlePreferencesSkip}
+          />
+        )}
         <Routes>
           <Route 
             path="/login" 
@@ -134,7 +164,8 @@ function App() {
                   dashboardData={dashboardData} 
                   setDashboardData={updateDashboardData} 
                   user={user} 
-                  onLogout={handleLogout} 
+                  onLogout={handleLogout}
+                  userPreferences={preferences}
                 /> : 
                 <Navigate to="/login" replace />
             } 

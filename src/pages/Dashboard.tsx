@@ -11,6 +11,7 @@ interface DashboardProps {
   setDashboardData: (data: DashboardData) => void;
   user?: any;
   onLogout?: () => void;
+  userPreferences?: { categories: string[] } | null;
 }
 
 const styles: { [key: string]: CSSProperties } = {
