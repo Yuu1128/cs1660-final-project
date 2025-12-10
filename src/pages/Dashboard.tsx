@@ -81,6 +81,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ dashboardData, setDashboar
     setEndDate(format(end, 'yyyy-MM-dd'));
   };
 
+  const filteredArticles = dashboardData?.articles.filter(article => {
+    if (!article.pubDate) return false;
+    
+    const articleDate = new Date(article.pubDate);
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+    
+    return articleDate >= start && articleDate <= end;
+  }) || [];
+
+  const filteredSentiments = dashboardData?.sentimentResults.filter(sentiment => 
+    filteredArticles.some(article => article.articleId === sentiment.articleId)
+  ) || [];
+
 
 
 
@@ -121,13 +138,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ dashboardData, setDashboar
                     Recent Articles
                   </h2>
                   <span style={{ fontSize: '14px', color: '#6b7280' }}>
-                    {dashboardData?.totalCount || 0} articles found
+                    {filteredArticles.length} articles found
                   </span>
                 </div>
 
                 <div style={styles.articlesGrid}>
-                  {dashboardData?.articles.map(article => {
-                    const sentiment = dashboardData.sentimentResults.find(
+                  {filteredArticles.map(article => {
+                    const sentiment = filteredSentiments.find(
                       s => s.articleId === article.articleId
                     );
                     return (
