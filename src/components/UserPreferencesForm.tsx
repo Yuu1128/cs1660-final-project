@@ -105,10 +105,16 @@ export const UserPreferencesForm: React.FC<UserPreferencesFormProps> = ({ onSave
       if (prev.includes(category)) {
         return prev.filter(c => c !== category);
       } else {
+        if (prev.length >= 5) {
+          setError('You can select a maximum of 5 categories');
+          return prev;
+        }
         return [...prev, category];
       }
     });
-    setError('');
+    if (!selectedCategories.includes(category) && selectedCategories.length < 5) {
+      setError('');
+    }
   };
 
   const handleSave = async () => {
@@ -132,7 +138,10 @@ export const UserPreferencesForm: React.FC<UserPreferencesFormProps> = ({ onSave
       <div style={styles.modal}>
         <h2 style={styles.title}>Welcome! Let's personalize your news dashboard</h2>
         <p style={styles.subtitle}>
-          Select the news categories you're interested in:
+          Select the news categories you're interested in (up to 5):
+        </p>
+        <p style={{ ...styles.subtitle, marginBottom: '16px', fontSize: '14px' }}>
+          Selected: {selectedCategories.length}/5
         </p>
 
         <div style={styles.categoriesGrid}>
@@ -144,7 +153,7 @@ export const UserPreferencesForm: React.FC<UserPreferencesFormProps> = ({ onSave
                 checked={selectedCategories.includes(category)}
                 onChange={() => handleCategoryToggle(category)}
                 style={styles.checkbox}
-                disabled={loading || saving}
+                disabled={loading || saving || (selectedCategories.length >= 5 && !selectedCategories.includes(category))}
               />
               <label htmlFor={category} style={styles.label}>
                 {category}
