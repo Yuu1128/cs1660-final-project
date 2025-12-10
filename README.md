@@ -48,3 +48,6 @@ A React-based web application that displays personalized news articles with sent
 This project is configured for deployment on AWS Amplify with automatic builds.
 - Every push to the connected branch triggers automatic build and deployment
 - Build configuration is defined in `amplify.yml`
+
+## Acknowledgments
+* **Sentiment Analysis:** Powered by [vaderSentiment](https://github.com/cjhutto/vaderSentiment)
