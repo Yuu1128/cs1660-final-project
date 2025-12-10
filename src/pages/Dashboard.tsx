@@ -4,7 +4,6 @@ import { DateFilter } from '../components/DateFilter';
 import { ArticleCard } from '../components/ArticleCard';
 import { DashboardData } from '../types';
 import { format, subDays } from 'date-fns';
-import { generateMockDashboardData } from '../services/mockData';
 
 interface DashboardProps {
   dashboardData: DashboardData | null;
@@ -71,7 +70,6 @@ const styles: { [key: string]: CSSProperties } = {
 export const Dashboard: React.FC<DashboardProps> = ({ dashboardData, setDashboardData, user, onLogout }) => {
   const [startDate, setStartDate] = useState(format(subDays(new Date(), 7), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [loading, setLoading] = useState(false);
 
   const handleQuickFilter = (days: number) => {
     const end = new Date();
@@ -82,14 +80,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ dashboardData, setDashboar
 
 
 
-  useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      const data = generateMockDashboardData(startDate, endDate);
-      setDashboardData(data);
-      setLoading(false);
-    }, 1000);
-  }, [startDate, endDate, setDashboardData]);
 
   return (
     <>
@@ -114,7 +104,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ dashboardData, setDashboar
               />
             </div>
 
-            {loading ? (
+            {!dashboardData ? (
               <div style={styles.loadingContainer}>
                 <div style={styles.spinner}></div>
               </div>

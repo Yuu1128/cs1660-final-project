@@ -5,7 +5,6 @@ import { signOut, getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
 import { get } from 'aws-amplify/api';
 import '@aws-amplify/ui-react/styles.css';
 import { Dashboard } from './pages/Dashboard';
-import { ArticlePage } from './pages/ArticlePage';
 import { DashboardData, NewsArticle } from './types';
 import { UserPreferences } from './components/UserPreferences';
 import { useUserPreferences } from './hooks/useUserPreferences';
@@ -62,7 +61,7 @@ function App() {
     try {
       const restOperation = get({
         apiName: 'NewsDashboardAPI',
-        path: '/news',
+        path: '/articles',
         options: categories && categories.length > 0 ? {
           queryParams: {
             categories: categories.join(',')
@@ -169,14 +168,7 @@ function App() {
                 <Navigate to="/login" replace />
             } 
           />
-          <Route 
-            path="/article/:id" 
-            element={
-              isAuthenticated ? 
-                <ArticlePage articles={dashboardData?.articles || []} /> : 
-                <Navigate to="/login" replace />
-            } 
-          />    
+    
           <Route 
             path="/" 
             element={

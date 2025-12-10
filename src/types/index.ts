@@ -2,11 +2,11 @@ export interface NewsArticle {
   articleId: string;
   title: string;
   url: string;
-  content: string;
-  publishedAt: string;
-  source: string;
+  description: string;
+  pubDate?: string;
   topic: string;
-  imageUrl?: string;
+  timestamp?: number;
+  sentimentScore?: number;
 }
 
 export interface SentimentResult {
@@ -43,16 +43,4 @@ export interface DashboardData {
     neutralCount: number;
   };
   lastUpdated?: string;
-}
-
-export interface SentimentInsights {
-  overallSentiment: number;
-  positiveCount: number;
-  negativeCount: number;
-  neutralCount: number;
-  trendData: Array<{
-    date: string;
-    sentiment: number;
-    count: number;
-  }>;
 }

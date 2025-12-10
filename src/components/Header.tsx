@@ -93,18 +93,6 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
           </div>
           
           <div style={styles.rightSection}>
-            <button 
-              style={styles.button}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = '#6b7280';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = '#9ca3af';
-              }}
-            >
-              <Bell style={styles.icon} />
-            </button>
-            
             <div style={styles.userSection}>
               <div style={styles.userInfo}>
                 <div style={styles.userDetails}>
