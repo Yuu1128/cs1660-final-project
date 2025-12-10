@@ -1,5 +1,5 @@
 import React, { CSSProperties } from 'react';
-import { User, LogOut, Bell } from 'lucide-react';
+import { User, LogOut } from 'lucide-react';
 import moodMediaLogo from '../assets/moodmedia-logo.svg';
 
 interface HeaderProps {
