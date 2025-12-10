@@ -18,14 +18,18 @@ export interface SentimentResult {
 export interface User {
   userId: string;
   email: string;
-  preferences: UserPreferences;
   createdAt: string;
 }
 
 export interface UserPreferences {
-  topics: string[];
-  sources: string[];
-  sentimentThreshold?: number;
+  categories: string[];
+  [key: string]: any;
+}
+
+export interface UserPreferenceResponse {
+  userId: string;
+  preferences: UserPreferences;
+  updatedAt?: string;
 }
 
 export interface DashboardData {

@@ -1,8 +1,9 @@
-import React, { useState, useEffect, CSSProperties } from 'react';
+import React, { useState, CSSProperties } from 'react';
 import { Header } from '../components/Header';
 import { DateFilter } from '../components/DateFilter';
 import { ArticleCard } from '../components/ArticleCard';
-import { DashboardData } from '../types';
+import { UserPreferencesForm } from '../components/UserPreferencesForm';
+import { DashboardData, UserPreferences } from '../types';
 import { format, subDays } from 'date-fns';
 
 interface DashboardProps {
@@ -10,7 +11,9 @@ interface DashboardProps {
   setDashboardData: (data: DashboardData) => void;
   user?: any;
   onLogout?: () => void;
-  userPreferences?: { categories: string[] } | null;
+  hasPreferences: boolean;
+  saveUserPreferences: (preferences: UserPreferences) => Promise<boolean>;
+  preferencesLoading: boolean;
 }
 
 const styles: { [key: string]: CSSProperties } = {
@@ -67,7 +70,7 @@ const styles: { [key: string]: CSSProperties } = {
   },
 };
 
-export const Dashboard: React.FC<DashboardProps> = ({ dashboardData, setDashboardData, user, onLogout }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ dashboardData, setDashboardData, user, onLogout, hasPreferences, saveUserPreferences, preferencesLoading }) => {
   const [startDate, setStartDate] = useState(format(subDays(new Date(), 7), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
 
@@ -93,6 +96,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ dashboardData, setDashboar
         <Header user={user} onLogout={onLogout} />
         
         <main style={styles.main}>
+          {!hasPreferences && !preferencesLoading && (
+            <UserPreferencesForm onSave={saveUserPreferences} loading={preferencesLoading} />
+          )}
           <div style={styles.content}>
             <div style={styles.dateFilterSection}>
               <DateFilter
