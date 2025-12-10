@@ -1,16 +1,19 @@
-import React, { useState, useEffect, CSSProperties } from 'react';
+import React, { useState, CSSProperties } from 'react';
 import { Header } from '../components/Header';
 import { DateFilter } from '../components/DateFilter';
 import { ArticleCard } from '../components/ArticleCard';
-import { DashboardData } from '../types';
+import { UserPreferencesForm } from '../components/UserPreferencesForm';
+import { DashboardData, UserPreferences } from '../types';
 import { format, subDays } from 'date-fns';
-import { generateMockDashboardData } from '../services/mockData';
 
 interface DashboardProps {
   dashboardData: DashboardData | null;
   setDashboardData: (data: DashboardData) => void;
   user?: any;
   onLogout?: () => void;
+  hasPreferences: boolean;
+  saveUserPreferences: (preferences: UserPreferences) => Promise<boolean>;
+  preferencesLoading: boolean;
 }
 
 const styles: { [key: string]: CSSProperties } = {
@@ -67,10 +70,9 @@ const styles: { [key: string]: CSSProperties } = {
   },
 };
 
-export const Dashboard: React.FC<DashboardProps> = ({ dashboardData, setDashboardData, user, onLogout }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ dashboardData, setDashboardData, user, onLogout, hasPreferences, saveUserPreferences, preferencesLoading }) => {
   const [startDate, setStartDate] = useState(format(subDays(new Date(), 7), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [loading, setLoading] = useState(false);
 
   const handleQuickFilter = (days: number) => {
     const end = new Date();
@@ -79,16 +81,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ dashboardData, setDashboar
     setEndDate(format(end, 'yyyy-MM-dd'));
   };
 
+  const filteredArticles = dashboardData?.articles.filter(article => {
+    if (!article.pubDate) return false;
+    
+    const articleDate = new Date(article.pubDate);
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+    
+    return articleDate >= start && articleDate <= end;
+  }) || [];
+
+  const filteredSentiments = dashboardData?.sentimentResults.filter(sentiment => 
+    filteredArticles.some(article => article.articleId === sentiment.articleId)
+  ) || [];
 
 
-  useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      const data = generateMockDashboardData(startDate, endDate);
-      setDashboardData(data);
-      setLoading(false);
-    }, 1000);
-  }, [startDate, endDate, setDashboardData]);
+
 
   return (
     <>
@@ -102,6 +113,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ dashboardData, setDashboar
         <Header user={user} onLogout={onLogout} />
         
         <main style={styles.main}>
+          {!hasPreferences && !preferencesLoading && (
+            <UserPreferencesForm onSave={saveUserPreferences} loading={preferencesLoading} />
+          )}
           <div style={styles.content}>
             <div style={styles.dateFilterSection}>
               <DateFilter
@@ -113,7 +127,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ dashboardData, setDashboar
               />
             </div>
 
-            {loading ? (
+            {!dashboardData ? (
               <div style={styles.loadingContainer}>
                 <div style={styles.spinner}></div>
               </div>
@@ -124,13 +138,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ dashboardData, setDashboar
                     Recent Articles
                   </h2>
                   <span style={{ fontSize: '14px', color: '#6b7280' }}>
-                    {dashboardData?.totalCount || 0} articles found
+                    {filteredArticles.length} articles found
                   </span>
                 </div>
 
                 <div style={styles.articlesGrid}>
-                  {dashboardData?.articles.map(article => {
-                    const sentiment = dashboardData.sentimentResults.find(
+                  {filteredArticles.map(article => {
+                    const sentiment = filteredSentiments.find(
                       s => s.articleId === article.articleId
                     );
                     return (

@@ -1,8 +1,6 @@
 import React, { CSSProperties } from 'react';
-import { ArrowRight, Clock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import { NewsArticle, SentimentResult } from '../types';
-import { format } from 'date-fns';
 
 interface ArticleCardProps {
   article: NewsArticle;
@@ -97,8 +95,6 @@ const styles: { [key: string]: CSSProperties } = {
 };
 
 export const ArticleCard: React.FC<ArticleCardProps> = ({ article, sentiment }) => {
-  const navigate = useNavigate();
-
   const getSentimentBorderColor = (score?: number) => {
     if (!score) return '#e5e7eb';
     if (score > 0.1) return '#86efac';
@@ -107,7 +103,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, sentiment }) 
   };
 
   const handleReadMore = () => {
-    navigate(`/article/${article.articleId}`);
+    window.open(article.url, '_blank', 'noopener,noreferrer');
   };
 
   const cardStyle: CSSProperties = {
@@ -116,7 +112,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, sentiment }) 
   };
 
   return (
-    <div 
+    <div
       style={cardStyle}
       onMouseEnter={(e) => {
         e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
@@ -130,11 +126,10 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, sentiment }) 
           <h3 style={styles.title}>
             {article.title}
           </h3>
-          
+
           <div style={styles.meta}>
             <div style={styles.timeInfo}>
-              <Clock style={styles.icon} />
-              <span>{format(new Date(article.publishedAt), 'MMM dd, yyyy HH:mm')}</span>
+              <span>{article.pubDate}</span>
             </div>
             <span style={styles.separator}>•</span>
             <span style={styles.topicTag}>
@@ -143,13 +138,13 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, sentiment }) 
           </div>
         </div>
       </div>
-      
-      {article.content && (
+
+      {article.description && (
         <p style={styles.description}>
-          {article.content}
+          {article.description}
         </p>
       )}
-      
+
       <div style={styles.footer}>
         <button
           onClick={handleReadMore}

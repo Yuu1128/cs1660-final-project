@@ -5,8 +5,8 @@ import { signOut, getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
 import { get } from 'aws-amplify/api';
 import '@aws-amplify/ui-react/styles.css';
 import { Dashboard } from './pages/Dashboard';
-import { ArticlePage } from './pages/ArticlePage';
-import { DashboardData, NewsArticle } from './types';
+import { DashboardData, NewsArticle, UserPreferences } from './types';
+import { useUserPreferences } from './hooks/useUserPreferences';
 
 const styles: { [key: string]: CSSProperties } = {
   app: {
@@ -25,7 +25,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<any>(null);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { preferences, hasPreferences, saveUserPreferences, loading: preferencesLoading } = useUserPreferences(user?.userId || null);
 
   // 1. CHECK AUTH STATUS ON LOAD
   useEffect(() => {
@@ -37,29 +37,34 @@ function App() {
     try {
       const currentUser = await getCurrentUser();
       const attributes = await fetchUserAttributes();
-      setUser({ ...currentUser, ...attributes });
+      const fullUser = { ...currentUser, ...attributes };
+      setUser(fullUser);
       setIsAuthenticated(true);
-      fetchData();
     } catch (error) {
-      console.log('User is not signed in');
       setIsAuthenticated(false);
-    } finally {
-      setLoading(false);
     }
   }
 
+    useEffect(() => {
+    if (isAuthenticated && hasPreferences && preferences) {
+      fetchData(preferences.categories);
+    }
+  }, [isAuthenticated, hasPreferences, preferences]);
+
   // 2. FETCH DATA FROM AWS LAMBDA
-  const fetchData = async () => {
+  const fetchData = async (categories?: string[]) => {
     try {
-      console.log('Fetching news from API...');
       const restOperation = get({
         apiName: 'NewsDashboardAPI',
-        path: '/news'
+        path: '/articles',
+        options: categories && categories.length > 0 ? {
+          queryParams: {
+            categories: categories.join(',')
+          }
+        } : undefined
       });
       const response = await restOperation.response;
       const json = await response.body.json() as any;
-
-      console.log('API Response:', json);
 
       const articles: NewsArticle[] = Array.isArray(json) ? json : [];
 
@@ -103,7 +108,13 @@ function App() {
     setDashboardData(null);
   }, []);
 
-  if (loading) return <div style={{padding: 20}}>Loading...</div>;
+  const handlePreferencesSave = useCallback(async (newPreferences: UserPreferences): Promise<boolean> => {
+    const success = await saveUserPreferences(newPreferences);
+    if (success) {
+      await fetchData(newPreferences.categories);
+    }
+    return success || false;
+  }, [saveUserPreferences]);
 
   return (
     <Router>
@@ -134,19 +145,15 @@ function App() {
                   dashboardData={dashboardData} 
                   setDashboardData={updateDashboardData} 
                   user={user} 
-                  onLogout={handleLogout} 
+                  onLogout={handleLogout}
+                  hasPreferences={hasPreferences}
+                  saveUserPreferences={handlePreferencesSave}
+                  preferencesLoading={preferencesLoading}
                 /> : 
                 <Navigate to="/login" replace />
             } 
           />
-          <Route 
-            path="/article/:id" 
-            element={
-              isAuthenticated ? 
-                <ArticlePage articles={dashboardData?.articles || []} /> : 
-                <Navigate to="/login" replace />
-            } 
-          />    
+    
           <Route 
             path="/" 
             element={
