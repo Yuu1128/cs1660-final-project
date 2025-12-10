@@ -1,4 +1,4 @@
-# News Dashboard
+# MoodMedia: A News Sentiment Dashboard
 
 A React-based web application that displays personalized news articles with sentiment analysis.
 
