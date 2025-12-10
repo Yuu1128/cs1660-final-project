@@ -85,13 +85,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ dashboardData, setDashboar
     if (!article.pubDate) return false;
     
     const articleDate = new Date(article.pubDate);
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+
+    const start = new Date(startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T23:59:59.999');
     
-    start.setHours(0, 0, 0, 0);
-    end.setHours(23, 59, 59, 999);
+    const articleLocalDate = new Date(
+      articleDate.getFullYear(),
+      articleDate.getMonth(),
+      articleDate.getDate(),
+      articleDate.getHours(),
+      articleDate.getMinutes(),
+      articleDate.getSeconds(),
+      articleDate.getMilliseconds()
+    );
     
-    return articleDate >= start && articleDate <= end;
+    return articleLocalDate >= start && articleLocalDate <= end;
   }) || [];
 
   const filteredSentiments = dashboardData?.sentimentResults.filter(sentiment => 
