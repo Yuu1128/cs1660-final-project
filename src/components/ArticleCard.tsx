@@ -21,15 +21,18 @@ const styles: { [key: string]: CSSProperties } = {
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: '12px',
+    gap: '16px',
   },
   content: {
     flex: 1,
+    minWidth: 0,
   },
   title: {
     fontSize: '18px',
     fontWeight: '600',
     color: '#111827',
     marginBottom: '8px',
+    marginTop: '2px',
     display: '-webkit-box',
     WebkitLineClamp: 2,
     WebkitBoxOrient: 'vertical',
@@ -92,6 +95,26 @@ const styles: { [key: string]: CSSProperties } = {
     height: '16px',
     width: '16px',
   },
+  sentimentIndicator: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: '4px',
+    flexShrink: 0,
+    marginTop: '2px',
+  },
+  sentimentScore: {
+    fontSize: '20px',
+    fontWeight: '700',
+    lineHeight: '1',
+  },
+  sentimentLabel: {
+    fontSize: '10px',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    color: '#6b7280',
+  },
 };
 
 export const ArticleCard: React.FC<ArticleCardProps> = ({ article, sentiment }) => {
@@ -100,6 +123,25 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, sentiment }) 
     if (score > 0.1) return '#86efac';
     if (score < -0.1) return '#fca5a5';
     return '#fcd34d';
+  };
+
+  const formatSentimentScore = (score?: number): string => {
+    if (score === undefined) return 'N/A';
+    return score.toFixed(2);
+  };
+
+  const getSentimentLabel = (score?: number): string => {
+    if (!score) return 'Neutral';
+    if (score > 0.1) return 'Positive';
+    if (score < -0.1) return 'Negative';
+    return 'Neutral';
+  };
+
+  const getSentimentColor = (score?: number): string => {
+    if (!score) return '#6b7280';
+    if (score > 0.1) return '#22c55e';
+    if (score < -0.1) return '#ef4444';
+    return '#eab308';
   };
 
   const handleReadMore = () => {
@@ -136,6 +178,17 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, sentiment }) 
               {article.topic}
             </span>
           </div>
+        </div>
+        <div style={styles.sentimentIndicator}>
+          <span style={{
+            ...styles.sentimentScore,
+            color: getSentimentColor(sentiment?.sentimentScore)
+          }}>
+            {formatSentimentScore(sentiment?.sentimentScore)}
+          </span>
+          <span style={styles.sentimentLabel}>
+            {getSentimentLabel(sentiment?.sentimentScore)}
+          </span>
         </div>
       </div>
 
