@@ -8,6 +8,7 @@ interface UserPreferences {
 export const useUserPreferences = (userId: string | null) => {
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasNoPreferences, setHasNoPreferences] = useState(false);
 
   useEffect(() => {
     if (!userId) {
@@ -27,9 +28,12 @@ export const useUserPreferences = (userId: string | null) => {
         
         if (data && data.preferences) {
           setPreferences(data.preferences);
+          setHasNoPreferences(false);
         }
       } catch (error: any) {
-        if (error?.response?.status !== 404) {
+        if (error?.response?.status === 404) {
+          setHasNoPreferences(true);
+        } else {
           console.error('Failed to fetch user preferences:', error);
         }
       } finally {
@@ -40,5 +44,5 @@ export const useUserPreferences = (userId: string | null) => {
     fetchPreferences();
   }, [userId]);
 
-  return { preferences, setPreferences, loading };
+  return { preferences, setPreferences, loading, hasNoPreferences };
 };

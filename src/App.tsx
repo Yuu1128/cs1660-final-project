@@ -27,7 +27,7 @@ function App() {
   const [user, setUser] = useState<any>(null);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const { preferences, setPreferences, loading: preferencesLoading } = useUserPreferences(user?.userId || user?.username);
+  const { preferences, setPreferences, loading: preferencesLoading, hasNoPreferences } = useUserPreferences(user?.userId || user?.username);
 
   // 1. CHECK AUTH STATUS ON LOAD
   useEffect(() => {
@@ -51,10 +51,14 @@ function App() {
   }
 
   useEffect(() => {
-    if (isAuthenticated && !preferencesLoading && preferences) {
-      fetchData(preferences.categories);
+    if (isAuthenticated && !preferencesLoading) {
+      if (preferences) {
+        fetchData(preferences.categories);
+      } else if (!hasNoPreferences) {
+        fetchData();
+      }
     }
-  }, [isAuthenticated, preferencesLoading, preferences]);
+  }, [isAuthenticated, preferencesLoading, preferences, hasNoPreferences]);
 
   // 2. FETCH DATA FROM AWS LAMBDA
   const fetchData = async (categories?: string[]) => {
@@ -129,7 +133,7 @@ function App() {
   return (
     <Router>
       <div style={styles.app}>
-        {isAuthenticated && !preferencesLoading && !preferences && user && (
+        {isAuthenticated && !preferencesLoading && hasNoPreferences && user && (
           <UserPreferences
             userId={user.userId || user.username}
             onComplete={handlePreferencesComplete}
