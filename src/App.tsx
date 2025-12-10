@@ -60,7 +60,6 @@ function App() {
   // 2. FETCH DATA FROM AWS LAMBDA
   const fetchData = async (categories?: string[]) => {
     try {
-      console.log('Fetching news from API...', { categories });
       const restOperation = get({
         apiName: 'NewsDashboardAPI',
         path: '/news',
