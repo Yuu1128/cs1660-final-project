@@ -60,4 +60,5 @@ This project is configured for deployment on AWS Amplify with automatic builds.
 
 ## Acknowledgments
 * **Instructor:** Dan Mahoney ([@dansc0de](https://github.com/dansc0de))
+* **Team Member:** Yexiu (Yuna) Gao ([@Yuu1128](https://github.com/Yuu1128)) and Stanley Teng ([@stanleytengg](https://github.com/stanleytengg))
 * **Sentiment Analysis:** Powered by [vaderSentiment](https://github.com/cjhutto/vaderSentiment)
