@@ -4,7 +4,13 @@ A React-based web application that displays personalized news articles with sent
 
 ## Architecture Diagram
 
+### Overview（This diagram is used in the video demo）
+
 ![MoodMedia Architecture Diagram](./architecture-diagram.png)
+
+### Complete Diagram with Data Flow
+
+![MoodMedia Architecture Diagram with Data Flow](./architecture-diagram-with-data-flow.png)
 
 ## AWS Services Used
 
