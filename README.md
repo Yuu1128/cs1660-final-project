@@ -2,6 +2,9 @@
 
 A React-based web application that displays personalized news articles with sentiment analysis.
 
+**[Watch Video Demo](https://www.youtube.com/watch?v=ZOSxj3-nGXM)**  
+**[Live Application](https://main.d4yss6h7y13hh.amplifyapp.com/login)**
+
 ## Architecture Diagram
 
 ### Overview（This diagram is used in the video demo）
@@ -12,7 +15,7 @@ A React-based web application that displays personalized news articles with sent
 
 ![MoodMedia Architecture Diagram with Data Flow](./architecture-diagram-with-data-flow.png)
 
-## AWS Services Used
+### AWS Services Used
 
 - **AWS Cognito**: We selected Cognito over custom authentication solutions because it provides a fully managed, secure authentication service with built-in features like password policies and user management. This eliminates the need to handle sensitive authentication logic ourselves.
 
@@ -32,6 +35,8 @@ A React-based web application that displays personalized news articles with sent
 
 ## Setup Instructions
 
+### Local Development
+
 1. **Install dependencies**
    ```bash
    npm install
@@ -47,9 +52,7 @@ A React-based web application that displays personalized news articles with sent
    npm run build
    ```
 
-## Deployment
-
-### AWS Amplify Hosting
+### Production Deployment
 
 This project is configured for deployment on AWS Amplify with automatic builds.
 - Every push to the connected branch triggers automatic build and deployment
