@@ -59,4 +59,5 @@ This project is configured for deployment on AWS Amplify with automatic builds.
 - Build configuration is defined in `amplify.yml`
 
 ## Acknowledgments
+* **Instructor:** Dan Mahoney ([@dansc0de](https://github.com/dansc0de))
 * **Sentiment Analysis:** Powered by [vaderSentiment](https://github.com/cjhutto/vaderSentiment)
